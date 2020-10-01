@@ -1,0 +1,40 @@
+---
+# tasks file for ansible-docker-engine
+
+- name: Install dependencies
+  apt:
+    name: "{{ docker_package_dependencies }}"
+  become: true
+
+- name: Add Docker's public GPG key to the APT keyring
+  apt_key:
+    id: "{{ docker_apt_key_id }}"
+    url: "{{ docker_apt_key_url }}"
+  become: true
+
+- name: Configure Docker's upstream APT repository
+  apt_repository:
+    repo: "{{ docker_apt_repository }}"
+    update_cache: true
+  become: true
+
+- name: Install Docker
+  apt:
+    name: "docker-{{ docker_edition }}"
+    state: "{{ docker_state }}"
+  become: true
+
+- name: Add user(s) to "docker" group
+  user:
+    name: "{{ item }}"
+    groups: "docker"
+    append: true
+  loop: "{{ docker_users }}"
+  become: true
+
+- name: Make sure a docker is running and enabled on boot
+  systemd:
+    state: started
+    name: docker
+  become: true
+  

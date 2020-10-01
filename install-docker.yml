@@ -1,0 +1,8 @@
+---
+- hosts: oci-instances
+  vars:
+    install_portainer: true
+  roles:
+    - role: ansible-docker-engine
+    - role: ansible-docker-container-portainer
+      when: {{ install_portainer }}

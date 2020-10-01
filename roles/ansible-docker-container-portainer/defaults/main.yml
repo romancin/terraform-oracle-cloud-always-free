@@ -1,0 +1,31 @@
+---
+# defaults file for ansible-docker-container-portainer
+
+persistent_data_path: /container-data/portainer:/data
+
+package_dependencies:
+    - "python3-pip"
+
+pip_package_dependencies:
+    - "docker-py"
+
+container_labels: {}
+
+container_network:
+
+container_restart_policy: always
+
+container_recreate: false
+
+auth_method: 1
+
+version: latest
+
+host_port: 9000
+
+container_ports:
+  - "9000:9000"
+
+# Admin User
+admin_user: admin
+admin_password: password

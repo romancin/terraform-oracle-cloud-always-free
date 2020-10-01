@@ -1,0 +1,62 @@
+---
+- name: Ensure persistent directory exists
+  file:
+    path: "{{ persistent_data_path }}"
+    state: directory
+    mode: '0755'
+    owner: ubuntu
+  become: true
+
+- name: Install dependencies
+  apt:
+    name: "{{ package_dependencies }}"
+  become: true
+
+- name: Install pip dependencies
+  pip:
+    name: "{{ pip_package_dependencies }}"
+  become: true
+
+- name: "Deploy Portainer to {{ inventory_hostname }}"
+  docker_container:
+    name: portainer
+    image: "portainer/portainer:{{ version }}"
+    labels: "{{ container_labels | default(omit) }}"
+    state: started
+    detach: true
+    recreate: "{{ container_recreate }}"
+    restart_policy: "{{ container_restart_policy }}"
+    links: "{{ container_links | default(omit) }}"
+    networks: "{{ container_network | default(omit, True) }}"
+    networks_cli_compatible: no # avoid ansible 2.12. Deprecation warning
+    published_ports: "{{ container_ports | default(omit, True) }}"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - "{{ persistent_data_path }}"
+  register: portainer_docker
+  become: true
+  
+- set_fact:
+    portainer_is_running: "{{ portainer_docker.ansible_facts.docker_container.State.Running }}"
+
+- set_fact:
+    portainer_endpoint: "http://{{ portainer_docker.ansible_facts.docker_container.NetworkSettings.IPAddress }}:{{ host_port }}/api"
+
+- name: "Check!!!"
+  debug:
+    msg: "{{ portainer_is_running }} // {{ portainer_endpoint }}"
+
+- name: Check container status
+  fail:
+    msg: "Portainer did not start: {{ portainer_is_running }}"
+  when: not portainer_is_running
+
+- name: Configure admin user password
+  uri:
+    url: "{{ portainer_endpoint }}/users/admin/init"
+    method: POST
+    return_content: true
+    body_format: json
+    body: '{ "Username":"{{ admin_user }}", "Password":"{{ admin_password }}"}'
+    status_code: 200, 409
+
