@@ -9,7 +9,8 @@ docker_channel: ["stable"]
 
 docker_state: "present"
 
-docker_users: ["{{ ansible_env.SUDO_USER | d('root') }}"]
+docker_users: 
+  - ubuntu
 
 docker_package_dependencies:
     - "apt-transport-https"
