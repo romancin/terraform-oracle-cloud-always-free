@@ -4,5 +4,7 @@
     install_portainer: true
   roles:
     - role: ansible-docker-engine
+    - role: ansible-swapfile
+      become: true
     - role: ansible-docker-container-portainer
-      when: install_portainer
+      when: install_portainer | bool

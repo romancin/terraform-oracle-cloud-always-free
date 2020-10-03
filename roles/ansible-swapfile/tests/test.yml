@@ -1,0 +1,8 @@
+---
+
+- hosts: "all"
+
+  # Travis doesn't allow swap files, so there are no role specific tests.
+
+  roles:
+    - "role_under_test"
