@@ -49,6 +49,14 @@ cloudserver2.mydomain.com. 0	A	2.2.2.2
 ```
 In my case, the main domain is pointing to another traefik, so I need to give an entire new subdomain to traefik running on the public cloud instances. This way, every host label under *.cloudserver1.mydomain.com will be exposed by traefik, and routed to the container where the service is running.
 
+Now, when the DNS entries are created, edit the yml files in the host_vars directory to overwrite the configuration for each instance:
+```
+---
+domain_name: "cloudserver1.mydomain.com"
+root_access_name: "portal.cloudserver1.mydomain.com" #This is used to "publish" services under this domain, with the default configuration, portainer will be accessed in https://portal.cloudserver1.mydomain.com/portainer/
+acme_email: "myemail@mydomain.com"
+
+```
 Feel free to adapt it to your own configuration.
 
 5.- To install only docker, execute:
