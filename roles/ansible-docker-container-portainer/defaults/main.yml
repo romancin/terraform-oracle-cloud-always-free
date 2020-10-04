@@ -7,7 +7,7 @@ package_dependencies:
     - "python3-pip"
 
 pip_package_dependencies:
-    - "docker-py"
+    - "docker"
 
 container_labels: {}
 

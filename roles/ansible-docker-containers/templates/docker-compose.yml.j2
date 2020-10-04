@@ -1,0 +1,103 @@
+version: "2.4"
+services:
+  traefik:
+    image: "traefik:latest"
+    container_name: "traefik"
+    restart: always
+    networks:
+      traefik_proxy:
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "{{ persistent_container_directory }}/traefik:/etc/traefik"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    command:
+      - "--api.dashboard=true"
+      - "--log.level=DEBUG"
+      - "--global.sendAnonymousUsage=false"
+      - "--serversTransport.insecureSkipVerify=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
+      - "--entrypoints.web.address=:80" # <== Defining an entrypoint for port :80 named web
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      - "--entrypoints.websecure.address=:443" # <== Defining an entrypoint for https on port :443 named web-secured
+      ## Certificate Settings (Let's Encrypt) -  https://docs.traefik.io/https/acme/#configuration-examples ##
+      - "--certificatesresolvers.le.acme.httpchallenge=true"
+      - "--certificatesresolvers.le.acme.httpChallenge.entryPoint=web"
+      - "--certificatesresolvers.le.acme.email={{ acme_email }}" # <== Setting email for certs
+      - "--certificatesresolvers.le.acme.storage=/etc/traefik/acme.json" # <== Defining acme file to store cert information
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network={{ compose_dir_name }}_traefik_proxy"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.{{ domain_name }}`)"
+      - "traefik.http.routers.traefik.tls=true"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.services.traefik.loadbalancer.server.port=9999"
+      - "traefik.http.routers.traefik.tls.certresolver=le"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.middlewares=dashboardauth"
+      - "traefik.http.middlewares.dashboardauth.basicauth.users={{ traefik_web_user }}:{{ traefik_web_password | password_hash('md5') | replace("$", "$$")}}"
+      - "traefik.http.middlewares.secureheaders.headers.stsSeconds=15552000"
+      - "traefik.http.middlewares.secureheaders.headers.sslForceHost=true"
+      - "traefik.http.middlewares.secureheaders.headers.sslRedirect=true"
+      - "traefik.http.middlewares.secureheaders.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.secureheaders.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.secureheaders.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.secureheaders.headers.forceSTSHeader=true"
+      - "traefik.http.middlewares.secureheaders.headers.stsPreload=true"
+      - "traefik.http.middlewares.secureheaders.headers.customResponseHeaders.X-Robots-Tag: none"
+
+  traefik-errorpages:
+    image: romancin/traefik-custom-error-pages
+    container_name: "traefik-errorpages"
+    restart: always
+    networks:
+      - traefik_proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.catchall_router.entrypoints=web"
+      - "traefik.http.routers.catchall_router.rule=HostRegexp(`{catchall:.*}`)"
+      - "traefik.http.routers.catchall_router.priority=1"
+      - "traefik.http.routers.catchall_router.service=catchall_service@docker"
+      - "traefik.http.routers.catchall_router_ssl.entrypoints=websecure"
+      - "traefik.http.routers.catchall_router_ssl.rule=HostRegexp(`{catchall:.*}`)"
+      - "traefik.http.routers.catchall_router_ssl.priority=1"
+      - "traefik.http.routers.catchall_router_ssl.tls=true"
+      - "traefik.http.routers.catchall_router_ssl.service=catchall_service@docker"
+      - "traefik.http.middlewares.errorpage.errors.status=400-599"
+      - "traefik.http.middlewares.errorpage.errors.service=catchall_service@docker"
+      - "traefik.http.middlewares.errorpage.errors.query=/{status}.html"
+      - "traefik.http.services.catchall_service.loadbalancer.server.port=80"
+  
+  portainer:
+    image: portainer/portainer-ce
+    container_name: portainer
+    restart: always
+    command: -H unix:///var/run/docker.sock
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - {{ persistent_container_directory }}/portainer:/data
+    environment:
+      - TZ={{ timezone }}
+    networks:
+      - traefik_proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network={{ compose_dir_name }}_traefik_proxy"
+      - "traefik.http.routers.portainer.rule=Host(`{{ root_access_name }}`) && PathPrefix(`/portainer`)"
+      - "traefik.http.routers.portainer.entrypoints=websecure"
+      - "traefik.http.routers.portainer.tls.certresolver=le"
+      - "traefik.http.routers.portainer.middlewares=portainer-stripprefix"
+      - "traefik.http.middlewares.portainer-stripprefix.stripprefix.prefixes=/portainer"
+      - "traefik.http.services.portainer.loadbalancer.passhostheader=true"
+      - "traefik.http.services.portainer.loadbalancer.server.scheme=http"
+      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+
+networks:
+  traefik_proxy:
+    driver: bridge
+  default:
+    driver: bridge

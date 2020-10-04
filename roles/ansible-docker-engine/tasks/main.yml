@@ -1,6 +1,17 @@
 ---
 # tasks file for ansible-docker-engine
 
+- name: Update OS to the latest packages
+  apt:
+    upgrade: dist 
+    force_apt_get: yes
+  register: update_packages
+  become: true
+
+- name: Reboot the instances and wait for them to come back up.
+  reboot:
+  when: update_packages.changed
+
 - name: Install dependencies
   apt:
     name: "{{ docker_package_dependencies }}"
@@ -32,7 +43,7 @@
   loop: "{{ docker_users }}"
   become: true
 
-- name: Make sure a docker is running and enabled on boot
+- name: Make sure docker service is running and enabled on boot
   systemd:
     state: started
     name: docker

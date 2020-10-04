@@ -1,0 +1,32 @@
+---
+# tasks file for ansible-docker-containers
+- name: Install dependencies
+  apt:
+    name: "{{ package_dependencies }}"
+  become: true
+  
+- name: Install pip dependencies
+  pip:
+    name: "{{ pip_package_dependencies }}"
+  become: true
+      
+- name: Check if directory for docker-compose exists
+  file:
+    path: "{{ persistent_container_directory }}/docker_services"
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Render docker-compose file
+  template:
+    src: templates/docker-compose.yml.j2
+    dest: "{{ persistent_container_directory }}/docker_services/docker-compose.yml"
+  become: true
+
+- name: Create and start services
+  docker_compose:
+    project_src: "{{ persistent_container_directory }}/docker_services"
+  register: docker_compose_output
+
+- debug:
+    var: docker_compose_output

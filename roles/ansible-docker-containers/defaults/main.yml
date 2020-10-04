@@ -1,0 +1,28 @@
+---
+# defaults file for ansible-docker-containers
+
+domain_name: "subdomain.domain.com"
+
+root_access_name: "portal.subdomain.domain.com"
+
+compose_dir_name: "docker_services"
+
+puid: "0"
+
+pgid: "0"
+
+timezone: "Europe/Madrid"
+
+persistent_container_directory: "/container-data"
+
+acme_email: "myemail@domain.com"
+
+traefik_web_user: "admin"
+
+traefik_web_password: "password"
+
+package_dependencies:
+    - "python3-pip"
+    
+pip_package_dependencies:
+  - "docker-compose"
