@@ -3,9 +3,13 @@
 
 - name: Update OS to the latest packages
   apt:
-    name: "*"
-    state: "present"
+    upgrade: dist 
+    force_apt_get: yes
   become: true
+
+- name: Reboot the instances and wait for them to come back up.
+  reboot:
+  when: update_packages.changed
 
 - name: Install dependencies
   apt:
