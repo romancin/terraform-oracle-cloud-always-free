@@ -1,0 +1,4 @@
+---
+domain_name: "cloudserver1.mydomain.com"
+root_access_name: "portal.cloudserver1.mydomain.com"
+acme_email: "myemail@mydomain.com"
