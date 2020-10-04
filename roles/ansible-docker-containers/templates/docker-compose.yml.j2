@@ -97,8 +97,6 @@ services:
       - "traefik.http.services.portainer.loadbalancer.server.port=9000"
 
 networks:
-  qnetbridge_network:
-    driver: bridge
   traefik_proxy:
     driver: bridge
   default:
