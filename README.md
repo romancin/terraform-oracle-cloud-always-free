@@ -80,5 +80,5 @@ ansible-playbook -i inventory install-docker.yml -e traefik_web_user="admin" -e 
 After playbook finishes, you can access this URLS:
 https://traefik.cloudserver1.mydomain.com --> Traefik dashboard on instance 1. Default username and password are "admin" and "password"
 https://traefik.cloudserver2.mydomain.com --> Traefik dashboard on instance 2. Default username and password are "admin" and "password"
-https://portal.cloudserver1.mydomain.com/portainer/ --> Traefik dashboard on instance 1. **IMPORTANT**: Configure it just after deploy, as in the first use will ask you for the password.
-https://portal.cloudserver2.mydomain.com/portainer/ --> Traefik dashboard on instance 2. **IMPORTANT**: Configure it just after deploy, as in the first use will ask you for the password.
+https://portal.cloudserver1.mydomain.com/portainer/ --> Portainer on instance 1. **IMPORTANT**: Configure it just after deploy, as in the first use will ask you for the password.
+https://portal.cloudserver2.mydomain.com/portainer/ --> Portainer dashboard on instance 2. **IMPORTANT**: Configure it just after deploy, as in the first use will ask you for the password.
