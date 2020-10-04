@@ -21,5 +21,8 @@ traefik_web_user: "admin"
 
 traefik_web_password: "password"
 
+package_dependencies:
+    - "python3-pip"
+    
 pip_package_dependencies:
   - "docker-compose"
