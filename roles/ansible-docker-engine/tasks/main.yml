@@ -32,7 +32,7 @@
   loop: "{{ docker_users }}"
   become: true
 
-- name: Make sure a docker is running and enabled on boot
+- name: Make sure docker service is running and enabled on boot
   systemd:
     state: started
     name: docker
