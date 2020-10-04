@@ -1,6 +1,12 @@
 ---
 # tasks file for ansible-docker-engine
 
+- name: Update OS to the latest packages
+  apt:
+    name: "*"
+    state: "present"
+  become: true
+
 - name: Install dependencies
   apt:
     name: "{{ docker_package_dependencies }}"
