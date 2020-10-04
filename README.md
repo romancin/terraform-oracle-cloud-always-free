@@ -39,14 +39,32 @@ Execution
 
 4.- ```terraform apply```
 
-5.- To install docker with portainer on the provisioned instances, execute:
+4.- Optional: If you are going to deploy traefik + portainer, it is time to take the Terraform outputs (Public IP of the instances) and create 2 DNS entries for each of them:
+For example:
+```
+cloudserver1.mydomain.com. 0	A	1.1.1.1
+cloudserver2.mydomain.com. 0	A	2.2.2.2
+*.cloudserver1.mydomain.com. 0	CNAME	cloudserver1.mydomain.com.
+*.cloudserver2.mydomain.com. 0	CNAME	cloudserver2.mydomain.com.
+```
+In my case, the main domain is pointing to another traefik, so I need to give an entire new subdomain to traefik running on the public cloud instances. This way, every host label under *.cloudserver1.mydomain.com will be exposed by traefik, and routed to the container where the service is running.
+
+Feel free to adapt it to your own configuration.
+
+5.- To install only docker, execute:
+
+```
+ansible-playbook -i inventory install-docker.yml -e install_traefik_and_portainer=false
+```
+
+6.- To install only docker with portainer, execute:
+
+```
+ansible-playbook -i inventory install-docker.yml -e install_portainer=true
+```
+
+7.- To install docker with traefik and portainer, execute:
 
 ```
 ansible-playbook -i inventory install-docker.yml
-```
-
-6.- To install only docker without portainer, execute:
-
-```
-ansible-playbook -i inventory install-docker.yml -e install_portainer=false
 ```
